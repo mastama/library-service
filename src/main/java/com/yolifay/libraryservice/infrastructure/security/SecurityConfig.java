@@ -21,10 +21,11 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/v1/auth/**").permitAll()
                         // swagger boleh dibuka jika nanti diaktifkan lagi
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/swagger/**").permitAll()
                         // auth endpoints
-                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("api/v1/articles/**").authenticated()
                         // contoh: GET library bebas, yang lain butuh JWT
                         .requestMatchers(HttpMethod.GET, "/api/v1/library/**").permitAll()
                         .anyRequest().authenticated()
