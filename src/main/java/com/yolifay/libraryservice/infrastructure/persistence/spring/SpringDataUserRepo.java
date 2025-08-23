@@ -11,4 +11,7 @@ public interface SpringDataUserRepo extends JpaRepository<UserEntity, Long> {
     Optional<UserEntity> findByUsernameOrEmail(String username, String email);
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);
+
+    // adapter user for refresh token
+    Optional<UserEntity> findById(Long id);
 }

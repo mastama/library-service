@@ -11,4 +11,7 @@ public interface UserRepositoryPort {
     Optional<User> findByUsernameOrEmail(String q);
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);
+
+    // butuh dapatkan user by id saat refresh token;
+    Optional<User> findById(Long id);
 }

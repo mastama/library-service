@@ -44,4 +44,9 @@ public class JpaUserRepository implements UserRepositoryPort {
     public boolean existsByEmail(String email) {
         return userRepo.existsByEmail(email);
     }
+
+    @Override
+    public Optional<User> findById(Long id) {
+        return userRepo.findById(id).map(UserMapper::toDomain);
+    }
 }
