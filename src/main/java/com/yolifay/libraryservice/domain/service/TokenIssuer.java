@@ -1,8 +1,11 @@
 package com.yolifay.libraryservice.domain.service;
 
-public interface TokenIssuer {
-    String issue(Long userId, String username, String email, String fullName); // create JWT
-    DecodedToken verify(String token); // parse + verify
+import java.time.Instant;
 
-    record DecodedToken(Long userId, String username, String email) {}
+public interface TokenIssuer {
+    Token issue(Long userId, String username, String email, String fullName); // create JWT + meta
+    DecodedToken verify(String token);                                        // parse + verify
+
+    record Token(String value, String jti, Instant issuedAt, Instant expiresAt) {}
+    record DecodedToken(Long userId, String username, String email, String jti) {}
 }

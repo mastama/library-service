@@ -1,6 +1,7 @@
 package com.yolifay.libraryservice.infrastructure.security;
 
 import com.yolifay.libraryservice.domain.service.TokenIssuer;
+import com.yolifay.libraryservice.domain.service.TokenStore;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,22 +19,30 @@ import java.util.List;
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
     private final TokenIssuer tokenIssuer;
-    public JwtAuthFilter(TokenIssuer tokenIssuer){ this.tokenIssuer = tokenIssuer; }
+    private final TokenStore tokenStore;
+
+    public JwtAuthFilter(TokenIssuer tokenIssuer, TokenStore tokenStore) {
+        this.tokenIssuer = tokenIssuer;
+        this.tokenStore = tokenStore;
+    }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
             throws ServletException, IOException {
-        String header = request.getHeader(HttpHeaders.AUTHORIZATION);
+        String header = req.getHeader(HttpHeaders.AUTHORIZATION);
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
             try {
                 var dec = tokenIssuer.verify(token);
-                var auth = new UsernamePasswordAuthenticationToken(
-                        dec.username(), null, List.of(new SimpleGrantedAuthority("ROLE_USER")));
-                auth.setDetails(dec.userId());
-                SecurityContextHolder.getContext().setAuthentication(auth);
-            } catch (Exception ignored) { /* invalid token → continue without auth */ }
+                // token harus ada di whitelist Redis
+                if (tokenStore.isWhitelisted(dec.jti())) {
+                    var auth = new UsernamePasswordAuthenticationToken(
+                            dec.username(), null, List.of(new SimpleGrantedAuthority("ROLE_USER")));
+                    auth.setDetails(dec.userId()); // simpan userId
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                }
+            } catch (Exception ignored) { /* invalid → no auth */ }
         }
-        filterChain.doFilter(request, response);
+        chain.doFilter(req, res);
     }
 }

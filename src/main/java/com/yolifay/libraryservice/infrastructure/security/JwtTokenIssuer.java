@@ -11,53 +11,54 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.time.Instant;
 import java.util.Date;
+import java.util.UUID;
 
 @Component
 public class JwtTokenIssuer implements TokenIssuer {
 
     private final SecretKey key;
     private final String issuer;
-    private final long expirationMinutes;
+    private final long accessExpMinutes;
 
     public JwtTokenIssuer(
             @Value("${jwt.secret}") String secret,
             @Value("${jwt.issuer:library-service}") String issuer,
-            @Value("${jwt.expiration-minutes:60}") long expirationMinutes
+            @Value("${jwt.access-expiration-minutes:60}") long accessExpMinutes
     ) {
-        // pastikan secret >= 32 chars utk HS256
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
         this.issuer = issuer;
-        this.expirationMinutes = expirationMinutes;
+        this.accessExpMinutes = accessExpMinutes;
     }
 
     @Override
-    public String issue(Long userId, String username, String email, String fullName) {
+    public Token issue(Long userId, String username, String email, String fullName) {
         Instant now = Instant.now();
-        return Jwts.builder()
-                .setSubject(userId.toString()) // simpan userId di subject
-                .setIssuer(issuer)
-                .setIssuedAt(Date.from(now))
-                .setExpiration(Date.from(now.plusSeconds(expirationMinutes * 60)))
+        Instant exp = now.plusSeconds(accessExpMinutes * 60);
+        String jti = UUID.randomUUID().toString();
+
+        String token = Jwts.builder()
+                .setId(jti)                                // jti (standard)
+                .setSubject(userId.toString())             // sub
+                .setIssuer(issuer)                         // iss
+                .setIssuedAt(Date.from(now))               // iat
+                .setExpiration(Date.from(exp))             // exp
                 .claim("username", username)
                 .claim("email", email)
                 .claim("fullName", fullName)
-                .signWith(key, SignatureAlgorithm.HS256)  // 0.11.5 style
+                .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
+
+        return new Token(token, jti, now, exp);
     }
 
     @Override
     public DecodedToken verify(String token) {
-        // 0.11.5 parser style
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-
-        Long userId = Long.valueOf(claims.getSubject()); // ambil dari subject
-        String username = claims.get("username", String.class);
-        String email    = claims.get("email", String.class);
-
-        return new DecodedToken(userId, username, email);
+        Claims c = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+        return new DecodedToken(
+                Long.valueOf(c.getSubject()),
+                c.get("username", String.class),
+                c.get("email", String.class),
+                c.getId()   // jti
+        );
     }
 }
