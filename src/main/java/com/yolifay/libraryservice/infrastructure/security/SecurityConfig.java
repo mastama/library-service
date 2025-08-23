@@ -6,23 +6,31 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 public class SecurityConfig {
+    private final JwtAuthFilter jwtFilter;
+    public SecurityConfig(JwtAuthFilter jwtFilter){ this.jwtFilter = jwtFilter; }
 
     @Bean
-    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain security(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable) // REST stateless
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // buka swagger (opsional)
-                        .requestMatchers("/swagger", "/swagger/**", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
-                        // contoh: GET library boleh tanpa auth, lainnya perlu auth
+                        // swagger boleh dibuka jika nanti diaktifkan lagi
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/swagger/**").permitAll()
+                        // auth endpoints
+                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        // contoh: GET library bebas, yang lain butuh JWT
                         .requestMatchers(HttpMethod.GET, "/api/v1/library/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                .httpBasic(Customizer.withDefaults()); // Basic Auth
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .httpBasic(Customizer.withDefaults()); // optional: biar gampang debug
         return http.build();
     }
 }
