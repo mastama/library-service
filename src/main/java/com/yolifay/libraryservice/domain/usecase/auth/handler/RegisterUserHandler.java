@@ -18,21 +18,28 @@ public class RegisterUserHandler {
     private final Clock clock;
 
     public Long executeRegisterUser(RegisterUser regUser) {
-        log.info("Start register user: {}", regUser.username());
+        log.info("[REGISTER] start username={}, email={}", regUser.username(), regUser.email());
+
         if (users.existsByUsername(regUser.username().toLowerCase())) {
+            log.warn("[REGISTER] username exists: {}", regUser.username());
             throw new IllegalArgumentException("Username already exists");
         }
         if (users.existsByEmail(regUser.email().toLowerCase())) {
+            log.warn("[REGISTER] email exists: {}", regUser.email());
             throw new IllegalArgumentException("Email already exists");
         }
+
         var user = User.newUser(
                 regUser.fullName(),
                 regUser.username().toLowerCase(),
                 regUser.email().toLowerCase(),
                 passwordHasher.hash(regUser.password()),
-                clock.now()
+                clock.now(),
+                regUser.roleOrDefault()   // <-- aman: default VIEWER kalau null
         );
-        log.info("End register user: {}", regUser.username());
-        return users.save(user).getId();
+
+        var saved = users.save(user);
+        log.info("[REGISTER] success userId={}, role={}", saved.getId(), saved.getRole());
+        return saved.getId();
     }
 }

@@ -16,8 +16,11 @@ public class User {
     private final String email;
     private final String passwordHash;
     private final Instant createdAt;
+    private final Role role;
 
-    public static User newUser(String fullName, String username, String email, String passwordHash, Instant now) {
-        return new User(null, fullName, username.toLowerCase(), email.toLowerCase(), passwordHash, now);
+    public static User newUser(String fullName, String username, String email,
+                               String passwordHash, Instant now, Role role) {
+        return new User(null, fullName, username.toLowerCase(), email.toLowerCase(),
+                passwordHash, now, role == null ? Role.VIEWER : role);
     }
 }

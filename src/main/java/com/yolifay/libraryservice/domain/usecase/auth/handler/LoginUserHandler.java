@@ -39,7 +39,7 @@ public class LoginUserHandler {
         }
 
         // 1) Access token (JWT)
-        var access = tokenIssuer.issue(u.getId(), u.getUsername(), u.getEmail(), u.getFullName());
+        var access = tokenIssuer.issue(u.getId(), u.getUsername(), u.getEmail(), u.getFullName(), u.getRole());
         var accessTtl = Duration.between(access.issuedAt(), access.expiresAt());
         accessWhitelist.whitelist(access.jti(), u.getId(), accessTtl);
 

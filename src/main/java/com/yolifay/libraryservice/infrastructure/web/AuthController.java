@@ -1,15 +1,16 @@
 package com.yolifay.libraryservice.infrastructure.web;
 
 import com.yolifay.libraryservice.application.dto.auth.*;
+import com.yolifay.libraryservice.domain.model.Role;
+import com.yolifay.libraryservice.domain.model.User;
+import com.yolifay.libraryservice.domain.port.UserRepositoryPort;
 import com.yolifay.libraryservice.domain.service.RefreshTokenStore;
 import com.yolifay.libraryservice.domain.service.TokenIssuer;
 import com.yolifay.libraryservice.domain.service.TokenStore;
-import com.yolifay.libraryservice.domain.usecase.auth.command.LoginUser;
-import com.yolifay.libraryservice.domain.usecase.auth.command.RefreshAccessToken;
-import com.yolifay.libraryservice.domain.usecase.auth.command.RegisterUser;
-import com.yolifay.libraryservice.domain.usecase.auth.handler.LoginUserHandler;
-import com.yolifay.libraryservice.domain.usecase.auth.handler.RefreshAccessTokenHandler;
-import com.yolifay.libraryservice.domain.usecase.auth.handler.RegisterUserHandler;
+import com.yolifay.libraryservice.domain.usecase.auth.command.*;
+import com.yolifay.libraryservice.domain.usecase.auth.handler.*;
+import com.yolifay.libraryservice.infrastructure.audit.Audited;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -35,6 +37,14 @@ public class AuthController {
     private final RefreshAccessTokenHandler refreshHandler;
     private final RefreshTokenStore refreshStore;
 
+    private final RequestOtpHandler requestOtpHandler;
+    private final LoginWithOtpHandler loginWithOtpHandler;
+
+    @Value("${mfa.otp.ttl:5m}")
+    private java.time.Duration otpTtl;
+
+    private final UserRepositoryPort users; // inject via constructor
+
     @Value("${jwt.refresh-expiration-days:14}")
     private long refreshDays;
 
@@ -42,12 +52,14 @@ public class AuthController {
     @PostMapping("/register")
     public Long register(@Valid @RequestBody RegisterRequest registerRequest) {
         log.info("Incoming registering user with usernameOrEmail: {} - {}", registerRequest.username(), registerRequest.email());
+        var role = parseRoleOrDefault(registerRequest.role());
         log.info("Outgoing registered user with usernameOrEmail: {} - {}", registerRequest.username(), registerRequest.email());
         return registerHandler.executeRegisterUser(new RegisterUser(
                 registerRequest.fullName(),
                 registerRequest.username(),
                 registerRequest.email(),
-                registerRequest.password()
+                registerRequest.password(),
+                role
         ));
     }
 
@@ -99,5 +111,59 @@ public class AuthController {
 
         log.info("Outgoing logout request success");
         return ResponseEntity.ok(new LogoutResponse(accessRevoked, refreshRevoked));
+    }
+
+    private Role parseRoleOrDefault(String s){
+        if (s == null || s.isBlank()) return Role.VIEWER;
+        try { return Role.valueOf(s.trim().toUpperCase()); }
+        catch (IllegalArgumentException ex) { throw new IllegalArgumentException("Invalid role"); }
+    }
+
+    @PostMapping("/request-otp")
+    @Audited(action = "REQUEST_OTP")
+    public ResponseEntity<OtpResponse> requestOtp(@Valid @RequestBody RequestOtpRequest r){
+        log.info("Incoming request OTP for {}", r.usernameOrEmail());
+
+        // jalankan use case (generate + kirim email via Mailpit)
+        requestOtpHandler.execute(new OtpRequest(r.usernameOrEmail()));
+
+        // cari email user utk ditampilkan (dimask)
+        String email = users.findByUsernameOrEmail(r.usernameOrEmail().toLowerCase())
+                .map(User::getEmail)
+                .orElse("-");
+
+        OtpResponse body = new OtpResponse(
+                "OTP has been sent. Please check your email.",
+                "email",
+                maskEmail(email),
+                otpTtl.toSeconds()
+        );
+
+        log.info("Outgoing request OTP success for {} (to={})", r.usernameOrEmail(), body.to());
+        // 202 Accepted karena pengiriman email sifatnya async
+        return ResponseEntity.accepted().body(body);
+    }
+
+    @PostMapping("/login-otp")
+    @Audited(action = "LOGIN_OTP")
+    public TokenPairResponse loginOtp(@Valid @RequestBody LoginWithOtpRequest r,
+                                      HttpServletRequest req){
+        log.info("Incoming login otp");
+        String ip = Optional.ofNullable(req.getHeader("X-Forwarded-For")).orElseGet(req::getRemoteAddr);
+        String ua = Optional.ofNullable(req.getHeader("User-Agent")).orElse("-");
+
+        log.info("Outgoing login otp success");
+        return loginWithOtpHandler.execute(
+                new LoginWithOtp(r.usernameOrEmail(), r.password(), r.otp()), ip, ua);
+    }
+
+    /** Mask sederhana: tampilkan 2 huruf depan sebelum '@' */
+    private static String maskEmail(String email){
+        if (email == null || !email.contains("@")) return "-";
+        int at = email.indexOf('@');
+        String name = email.substring(0, at);
+        String domain = email.substring(at);
+        String visible = name.length() <= 2 ? name.substring(0, Math.max(1, name.length())) : name.substring(0, 2);
+        return visible + "*******" + domain;
     }
 }

@@ -1,5 +1,6 @@
 package com.yolifay.libraryservice.infrastructure.persistence.entity;
 
+import com.yolifay.libraryservice.domain.model.Role;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -29,4 +30,9 @@ public class UserEntity {
     private String passwordHash;
 
     private Instant createdAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
+
 }

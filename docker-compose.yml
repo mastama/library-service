@@ -1,0 +1,21 @@
+version: "3.8"
+services:
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # UI
+
+  # contoh kalau app kamu juga dijalankan via container
+  app:
+    build: .
+    environment:
+      SPRING_MAIL_HOST: mailpit
+      SPRING_MAIL_PORT: "1025"
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: "false"
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "false"
+      SPRING_MAIL_FROM: noreply@itsec.local
+    depends_on:
+      - mailpit
+    ports:
+      - "8088:8088"

@@ -33,7 +33,7 @@ public class RefreshAccessTokenHandler {
         User u = users.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         // 3) issue access token baru
-        var access = tokenIssuer.issue(u.getId(), u.getUsername(), u.getEmail(), u.getFullName());
+        var access = tokenIssuer.issue(u.getId(), u.getUsername(), u.getEmail(), u.getFullName(), u.getRole());
         var ttl = Duration.between(access.issuedAt(), access.expiresAt());
         tokenWhitelist.whitelist(access.jti(), u.getId(), ttl);
 

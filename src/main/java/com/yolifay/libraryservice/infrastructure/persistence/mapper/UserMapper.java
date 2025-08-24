@@ -14,6 +14,7 @@ public final class UserMapper {
         entity.setEmail(u.getEmail());
         entity.setPasswordHash(u.getPasswordHash());
         entity.setCreatedAt(u.getCreatedAt());
+        entity.setRole(u.getRole());
         return entity;
     }
 
@@ -24,7 +25,8 @@ public final class UserMapper {
                 entity.getUsername(),
                 entity.getEmail(),
                 entity.getPasswordHash(),
-                entity.getCreatedAt()
+                entity.getCreatedAt(),
+                entity.getRole()
         );
     }
 }
