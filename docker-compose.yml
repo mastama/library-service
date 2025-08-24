@@ -56,7 +56,7 @@ services:
 
       # DB
       DATABASE_URL: postgres
-      DATABASE_PORT: 15432
+      DATABASE_PORT: 5432
       DATABASE_NAME: library
       DATABASE_USERNAME: library
       DATABASE_PASSWORD: library
