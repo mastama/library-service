@@ -1,21 +1,91 @@
 version: "3.8"
+
 services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      TZ: Asia/Jakarta
+      POSTGRES_DB: library
+      POSTGRES_USER: library
+      POSTGRES_PASSWORD: library
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "15432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U library -d library"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
   mailpit:
     image: axllent/mailpit:latest
     ports:
-      - "1025:1025"   # SMTP
-      - "8025:8025"   # UI
+      - "1025:1025"  # SMTP
+      - "8025:8025"  # Web UI
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "-", "http://localhost:8025/"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
-  # contoh kalau app kamu juga dijalankan via container
-  app:
-    build: .
-    environment:
-      SPRING_MAIL_HOST: mailpit
-      SPRING_MAIL_PORT: "1025"
-      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: "false"
-      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "false"
-      SPRING_MAIL_FROM: noreply@itsec.local
+  library-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
     depends_on:
-      - mailpit
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8088
+
+      # DB
+      DATABASE_URL: postgres
+      DATABASE_PORT: 15432
+      DATABASE_NAME: library
+      DATABASE_USERNAME: library
+      DATABASE_PASSWORD: library
+
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+
+      # Mailpit
+      MAIL_HOST: mailpit
+      MAIL_PORT: 1025
+      MAIL_FROM: noreply@itsec.local
+
+      # JWT
+      JWT_SECRET: change-me-change-me-change-me-1234567890
+
+      # MFA (optional overrides)
+      MFA_ENABLED: "true"
+      MFA_OTP_LENGTH: 6
+      MFA_OTP_TTL: 5m
+      MFA_OTP_COOLDOWN: 30s
     ports:
       - "8088:8088"
+    # (opsional) jika mau limit resource
+    # deploy:
+    #   resources:
+    #     limits:
+    #       memory: 512M
+    #       cpus: "1.0"
+
+volumes:
+  pgdata:
