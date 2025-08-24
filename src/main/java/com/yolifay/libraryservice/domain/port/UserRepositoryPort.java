@@ -2,6 +2,7 @@ package com.yolifay.libraryservice.domain.port;
 
 import com.yolifay.libraryservice.domain.model.User;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface UserRepositoryPort {
@@ -11,6 +12,9 @@ public interface UserRepositoryPort {
     Optional<User> findByUsernameOrEmail(String q);
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);
+
+    List<User> findAll(int page, int size);
+    void deleteById(Long id);
 
     // butuh dapatkan user by id saat refresh token;
     Optional<User> findById(Long id);

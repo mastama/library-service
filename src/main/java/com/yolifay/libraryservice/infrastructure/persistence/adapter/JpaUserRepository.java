@@ -2,11 +2,14 @@ package com.yolifay.libraryservice.infrastructure.persistence.adapter;
 
 import com.yolifay.libraryservice.domain.model.User;
 import com.yolifay.libraryservice.domain.port.UserRepositoryPort;
+import com.yolifay.libraryservice.infrastructure.persistence.mapper.ArticleMapper;
 import com.yolifay.libraryservice.infrastructure.persistence.mapper.UserMapper;
 import com.yolifay.libraryservice.infrastructure.persistence.spring.SpringDataUserRepo;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -43,6 +46,16 @@ public class JpaUserRepository implements UserRepositoryPort {
     @Override
     public boolean existsByEmail(String email) {
         return userRepo.existsByEmail(email);
+    }
+
+    @Override
+    public List<User> findAll(int page, int size) {
+        return userRepo.findAll(PageRequest.of(page, size)).map(UserMapper::toDomain).toList();
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        userRepo.deleteById(id);
     }
 
     @Override
