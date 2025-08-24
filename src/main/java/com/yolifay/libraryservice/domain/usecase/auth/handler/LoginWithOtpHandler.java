@@ -5,6 +5,8 @@ import com.yolifay.libraryservice.domain.model.User;
 import com.yolifay.libraryservice.domain.port.UserRepositoryPort;
 import com.yolifay.libraryservice.domain.service.*;
 import com.yolifay.libraryservice.domain.usecase.auth.command.LoginWithOtp;
+import com.yolifay.libraryservice.infrastructure.ratelimit.RateLimitGuard;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,7 +30,14 @@ public class LoginWithOtpHandler{
     @Value("${jwt.refresh-expiration:14d}")
     private Duration refreshExp;
 
+    private final RateLimitGuard rl;
+    private final HttpServletRequest httpServletRequest;
+
+
     public TokenPairResponse execute(LoginWithOtp c, String ip, String userAgent) {
+        // batasi sama seperti login (atau buat rule khusus "login-otp")
+        rl.check("login", httpServletRequest, null, c.usernameOrEmail());
+
         // 1) Ambil user/cek lockout
         User u = users.findByUsernameOrEmail(c.usernameOrEmail().toLowerCase())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid credentials"));

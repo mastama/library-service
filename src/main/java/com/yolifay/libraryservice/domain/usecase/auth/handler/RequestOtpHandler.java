@@ -5,6 +5,8 @@ import com.yolifay.libraryservice.domain.port.UserRepositoryPort;
 import com.yolifay.libraryservice.domain.service.OtpSender;
 import com.yolifay.libraryservice.domain.service.OtpStore;
 import com.yolifay.libraryservice.domain.usecase.auth.command.OtpRequest;
+import com.yolifay.libraryservice.infrastructure.ratelimit.RateLimitGuard;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,9 +30,16 @@ public class RequestOtpHandler {
     @Value("${mfa.otp.cooldown:30s}")
     Duration cooldown;
 
+    private final RateLimitGuard rl;
+    private final HttpServletRequest httpServletRequest;
+
     private static final SecureRandom RNG = new SecureRandom();
 
     public void execute(OtpRequest o){
+
+        // batasi per IP + identity username/email
+        rl.check("request-otp", httpServletRequest, null, o.usernameOrEmail());
+
         User u = users.findByUsernameOrEmail(o.usernameOrEmail().toLowerCase())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         String key = "login:" + u.getId();

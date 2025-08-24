@@ -5,6 +5,7 @@ import com.yolifay.libraryservice.domain.port.ArticleRepositoryPort;
 import com.yolifay.libraryservice.domain.service.Clock;
 import com.yolifay.libraryservice.domain.usecase.article.command.UpdateArticle;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -13,9 +14,10 @@ public class UpdateArticleHandler {
     private final ArticleRepositoryPort articleRepo;
     private final Clock clock;
 
-    public void executeUpdateArticle(UpdateArticle updateArticle){
-        Article found = articleRepo.findById(updateArticle.id()).orElseThrow(() -> new IllegalArgumentException("Article not found"));
-        if (!found.getAuthorId().equals(updateArticle.authorId())) throw new IllegalArgumentException("Forbidden");
-        articleRepo.save(found.update(updateArticle.title(), updateArticle.content(), clock.now()));
+    @CacheEvict(cacheNames = {"articles.byId","articles.list"}, allEntries = true)
+    public void executeUpdateArticle(UpdateArticle ua){
+        Article found = articleRepo.findById(ua.id()).orElseThrow(() -> new IllegalArgumentException("Article not found"));
+        if (!found.getAuthorId().equals(ua.authorId())) throw new IllegalArgumentException("Forbidden");
+        articleRepo.save(found.update(ua.title(), ua.content(), clock.now()));
     }
 }

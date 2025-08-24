@@ -4,6 +4,7 @@ import com.yolifay.libraryservice.domain.port.UserRepositoryPort;
 import com.yolifay.libraryservice.domain.usecase.user.command.DeleteUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component;
 public class DeleteUserHandler {
     private final UserRepositoryPort userRepo;
 
+    @CacheEvict(cacheNames = {"users.byId","users.list"}, allEntries = true)
     public void executeDeleteUser(DeleteUser c){
         userRepo.deleteById(c.id());
         log.info("[USER] deleted id={}", c.id());

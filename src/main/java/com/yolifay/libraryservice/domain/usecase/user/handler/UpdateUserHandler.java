@@ -7,6 +7,7 @@ import com.yolifay.libraryservice.domain.service.PasswordHasher;
 import com.yolifay.libraryservice.domain.usecase.user.command.UpdateUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -17,6 +18,7 @@ public class UpdateUserHandler {
     private final PasswordHasher hasher;
     private final Clock clock;
 
+    @CacheEvict(cacheNames = {"users.byId","users.list"}, allEntries = true)
     public User executeUpdateUser(UpdateUser c){
         var u = userRepo.findById(c.id()).orElseThrow(() -> new IllegalArgumentException("User not found"));
         String newFull = c.fullName() != null ? c.fullName() : u.getFullName();

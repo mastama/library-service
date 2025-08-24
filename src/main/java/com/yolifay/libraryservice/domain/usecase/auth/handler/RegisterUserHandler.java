@@ -5,9 +5,14 @@ import com.yolifay.libraryservice.domain.port.UserRepositoryPort;
 import com.yolifay.libraryservice.domain.service.Clock;
 import com.yolifay.libraryservice.domain.service.PasswordHasher;
 import com.yolifay.libraryservice.domain.usecase.auth.command.RegisterUser;
+import com.yolifay.libraryservice.infrastructure.ratelimit.RateLimitGuard;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Component;
+
+import static com.yolifay.libraryservice.infrastructure.web.handler.RequestInfoHandler.currentUserId;
 
 @Component
 @RequiredArgsConstructor
@@ -17,8 +22,16 @@ public class RegisterUserHandler {
     private final PasswordHasher passwordHasher;
     private final Clock clock;
 
+    private final RateLimitGuard rl;
+    private final HttpServletRequest httpServletRequest;
+
+    @CacheEvict(cacheNames = {"users.byId","users.list"}, allEntries = true)
     public Long executeRegisterUser(RegisterUser regUser) {
         log.info("[REGISTER] start username={}, email={}", regUser.username(), regUser.email());
+
+        Long adminId = currentUserId();
+        // batasi per admin, identity = username yang mau dibuat
+        rl.check("register", httpServletRequest, adminId, regUser.username());
 
         if (users.existsByUsername(regUser.username().toLowerCase())) {
             log.warn("[REGISTER] username exists: {}", regUser.username());

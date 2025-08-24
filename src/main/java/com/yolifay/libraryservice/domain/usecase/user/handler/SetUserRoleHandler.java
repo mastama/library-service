@@ -5,6 +5,7 @@ import com.yolifay.libraryservice.domain.port.UserRepositoryPort;
 import com.yolifay.libraryservice.domain.usecase.user.command.SetUserRole;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Component;
 public class SetUserRoleHandler {
     private final UserRepositoryPort userRepo;
 
+    @CacheEvict(cacheNames = {"users.byId","users.list"}, allEntries = true)
     public User executeSetUserRole(SetUserRole c){
         var u = userRepo.findById(c.id()).orElseThrow(() -> new IllegalArgumentException("User not found"));
         var updated = User.builder()
