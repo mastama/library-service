@@ -10,6 +10,8 @@ import com.yolifay.libraryservice.domain.service.TokenStore;
 import com.yolifay.libraryservice.domain.usecase.auth.command.*;
 import com.yolifay.libraryservice.domain.usecase.auth.handler.*;
 import com.yolifay.libraryservice.infrastructure.audit.Audited;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -86,6 +88,7 @@ public class AuthController {
         );
     }
 
+    @Operation(summary = "Logout", security = @SecurityRequirement(name = "bearerAuth"))
     @PostMapping("/logout")
     public ResponseEntity<LogoutResponse> logout(
             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader,
