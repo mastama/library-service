@@ -16,7 +16,7 @@ public class MailpitOtpSender implements OtpSender {
     private final JavaMailSender mailSender;
 
     @Value("${spring.mail.from:noreply@itsec.local}")
-    String from;
+    public String from;
 
     @Override
     public void sendOtp(String email, String code) {

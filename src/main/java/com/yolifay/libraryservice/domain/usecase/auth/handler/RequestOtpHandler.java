@@ -24,11 +24,11 @@ public class RequestOtpHandler {
     private final OtpStore store;
 
     @Value("${mfa.otp.length:6}")
-    int length;
+    public int length;
     @Value("${mfa.otp.ttl:5m}")
-    Duration ttl;
+    public Duration ttl;
     @Value("${mfa.otp.cooldown:30s}")
-    Duration cooldown;
+    public Duration cooldown;
 
     private final RateLimitGuard rl;
     private final HttpServletRequest httpServletRequest;

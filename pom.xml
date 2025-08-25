@@ -112,6 +112,20 @@
             <version>2.8.11</version>
         </dependency>
 
+        <!-- Mockito -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <version>5.12.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-inline</artifactId>
+            <version>5.2.0</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -139,6 +153,106 @@
                         </exclude>
                     </excludes>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.11</version>
+
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <!-- OPTIONAL: gabungkan juga coverage dari integration test -->
+                    <execution>
+                        <id>prepare-agent-integration</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>prepare-agent-integration</goal>
+                        </goals>
+                    </execution>
+
+                    <execution>
+                        <id>report</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                        <configuration>
+                            <excludes>
+                                <!-- Main class -->
+                                <exclude>**/com/yolifay/libraryservice/*Application.class</exclude>
+
+                                <!-- DTO / records / response-request models -->
+                                <exclude>**/com/yolifay/libraryservice/application/dto/**</exclude>
+
+                                <!-- Hex port interfaces -->
+                                <exclude>**/com/yolifay/libraryservice/domain/port/**</exclude>
+
+                                <!-- Config, docs, exception, mapper, util trivial -->
+                                <exclude>**/com/yolifay/libraryservice/infrastructure/config/**</exclude>
+                                <exclude>**/com/yolifay/libraryservice/infrastructure/docs/**</exclude>
+                                <exclude>**/com/yolifay/libraryservice/**/exception/**</exclude>
+                                <exclude>**/com/yolifay/libraryservice/**/mapper/**</exclude>
+                                <exclude>**/com/yolifay/libraryservice/**/util/**</exclude>
+                                <exclude>**/com/yolifay/libraryservice/domain/usecase/article/command/**</exclude>
+                                <exclude>**/com/yolifay/libraryservice/domain/usecase/auth/command/**</exclude>
+                                <exclude>**/com/yolifay/libraryservice/domain/usecase/library/command/**</exclude>
+                                <exclude>**/com/yolifay/libraryservice/domain/usecase/user/command/**</exclude>
+                                <exclude>**/com/yolifay/libraryservice/domain/model/**</exclude>
+                                <exclude>**/com/yolifay/libraryservice/infrastructure/persistence/**</exclude>
+                                <exclude>**/com/yolifay/libraryservice/infrastructure/audit/**</exclude>
+                                <exclude>**/com/yolifay/libraryservice/infrastructure/cache/**</exclude>
+
+                                <!-- Web advice global (opsional) -->
+                                <exclude>**/com/yolifay/libraryservice/infrastructure/web/advice/**</exclude>
+
+                                <!-- Repository interface murni (tanpa impl) -->
+                                <exclude>**/com/yolifay/libraryservice/infrastructure/persistence/**/repository/**</exclude>
+
+                                <!-- Kode ter-generate (jika pakai Querydsl/MapStruct) -->
+                                <exclude>**/generated/**</exclude>
+                                <exclude>**/Q*.class</exclude>
+                            </excludes>
+                        </configuration>
+                    </execution>
+
+                    <!-- OPTIONAL: enforce target coverage untuk layer penting -->
+                    <execution>
+                        <id>check</id>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <rule>
+                                    <element>PACKAGE</element>
+                                    <includes>
+                                        <include>com.yolifay.libraryservice.domain.usecase.*</include>
+                                        <include>com.yolifay.libraryservice.domain.service.*</include>
+                                        <include>com.yolifay.libraryservice.infrastructure.ratelimit.*</include>
+                                        <include>com.yolifay.libraryservice.infrastructure.mfa.*</include>
+                                        <include>com.yolifay.libraryservice.infrastructure.security.*</include>
+                                    </includes>
+                                    <limits>
+                                        <limit>
+                                            <counter>BRANCH</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.70</minimum>
+                                        </limit>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.80</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

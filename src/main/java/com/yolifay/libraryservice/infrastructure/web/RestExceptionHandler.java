@@ -14,7 +14,7 @@ public class RestExceptionHandler {
 
     // Validasi @Valid
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    ResponseEntity<?> validationError(MethodArgumentNotValidException ex){
+    public ResponseEntity<?> validationError(MethodArgumentNotValidException ex){
         Map<String, String> errors = ex.getBindingResult().getFieldErrors().stream()
                 .collect(Collectors.toMap(f -> f.getField(), f -> f.getDefaultMessage(), (a, b) -> a));
         return ResponseEntity.badRequest().body(Map.of("message","validation_error","errors",errors));
@@ -22,7 +22,7 @@ public class RestExceptionHandler {
 
     // Not found, dll
     @ExceptionHandler(IllegalArgumentException.class)
-    ResponseEntity<?> notFound(IllegalArgumentException ex){
+    public ResponseEntity<?> notFound(IllegalArgumentException ex){
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", ex.getMessage()));
     }
 }

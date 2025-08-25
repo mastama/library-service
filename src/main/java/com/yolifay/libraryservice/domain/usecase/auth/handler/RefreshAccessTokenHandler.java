@@ -27,7 +27,7 @@ public class RefreshAccessTokenHandler {
     private final HttpServletRequest httpServletRequest;
 
     @Value("${jwt.refresh-expiration-days:14}")
-    private Long refreshDays; // fallback, properti dipakai di controller
+    public Long refreshDays; // fallback, properti dipakai di controller
 
     public TokenPair execute(RefreshAccessToken c) {
 
