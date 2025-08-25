@@ -1,4 +1,4 @@
-package com.yolifay.libraryservice.infrastructure;
+package com.yolifay.libraryservice.infrastructure.web;
 
 import com.yolifay.libraryservice.application.dto.user.CreateUserRequest;
 import com.yolifay.libraryservice.application.dto.user.UpdateUserRequest;
@@ -10,7 +10,6 @@ import com.yolifay.libraryservice.domain.usecase.auth.command.RegisterUser;
 import com.yolifay.libraryservice.domain.usecase.auth.handler.RegisterUserHandler;
 import com.yolifay.libraryservice.domain.usecase.user.command.*;
 import com.yolifay.libraryservice.domain.usecase.user.handler.*;
-import com.yolifay.libraryservice.infrastructure.web.UsersController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

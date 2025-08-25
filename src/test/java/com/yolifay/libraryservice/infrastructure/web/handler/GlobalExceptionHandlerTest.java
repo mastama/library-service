@@ -1,4 +1,4 @@
-package com.yolifay.libraryservice.infrastructure.handler;
+package com.yolifay.libraryservice.infrastructure.web.handler;
 
 import com.yolifay.libraryservice.infrastructure.ratelimit.TooManyRequestsException;
 import com.yolifay.libraryservice.infrastructure.web.handler.GlobalExceptionHandler;

@@ -1,4 +1,4 @@
-package com.yolifay.libraryservice.infrastructure;
+package com.yolifay.libraryservice.infrastructure.web;
 
 import com.yolifay.libraryservice.application.dto.auth.*;
 import com.yolifay.libraryservice.domain.model.Role;
@@ -9,7 +9,6 @@ import com.yolifay.libraryservice.domain.service.TokenIssuer;
 import com.yolifay.libraryservice.domain.service.TokenStore;
 import com.yolifay.libraryservice.domain.usecase.auth.command.*;
 import com.yolifay.libraryservice.domain.usecase.auth.handler.*;
-import com.yolifay.libraryservice.infrastructure.web.AuthController;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

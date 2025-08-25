@@ -1,4 +1,4 @@
-package com.yolifay.libraryservice.infrastructure;
+package com.yolifay.libraryservice.infrastructure.web;
 
 import com.yolifay.libraryservice.application.dto.article.ArticleResponse;
 import com.yolifay.libraryservice.application.dto.article.CreateArticleRequest;
@@ -7,7 +7,6 @@ import com.yolifay.libraryservice.domain.model.Article;
 import com.yolifay.libraryservice.domain.usecase.article.command.*;
 import com.yolifay.libraryservice.domain.usecase.article.handler.*;
 import com.yolifay.libraryservice.infrastructure.security.CurrentUser;
-import com.yolifay.libraryservice.infrastructure.web.ArticleController;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

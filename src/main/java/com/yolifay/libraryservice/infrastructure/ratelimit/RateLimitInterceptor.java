@@ -1,6 +1,7 @@
 package com.yolifay.libraryservice.infrastructure.ratelimit;
 
 import com.yolifay.libraryservice.domain.service.RateLimiter;
+import com.yolifay.libraryservice.infrastructure.web.handler.RequestInfoHandler;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -47,20 +48,18 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         return true;
     }
 
-    private String clientIp(HttpServletRequest req) {
-        String xff = req.getHeader("X-Forwarded-For");
-        if (xff != null && !xff.isBlank()) return xff.split(",")[0].trim();
-        return req.getRemoteAddr();
+    public String clientIp(HttpServletRequest req) {
+        return RequestInfoHandler.clientIp(req);
     }
 
-    private String currentUserId() {
+    public String currentUserId() {
         Authentication a = SecurityContextHolder.getContext().getAuthentication();
         if (a == null) return "anon";
         Object details = a.getDetails(); // Kamu set userId di JwtAuthFilter via setDetails(userId)
         return details == null ? "anon" : String.valueOf(details);
     }
 
-    private String buildKey(RateLimitProperties.KeyBy keyBy, HttpServletRequest req) {
+    public String buildKey(RateLimitProperties.KeyBy keyBy, HttpServletRequest req) {
         String ip = clientIp(req);
         String uid = currentUserId();
         return switch (keyBy) {

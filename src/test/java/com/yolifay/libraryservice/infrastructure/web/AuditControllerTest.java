@@ -1,7 +1,6 @@
-package com.yolifay.libraryservice.infrastructure;
+package com.yolifay.libraryservice.infrastructure.web;
 
 import com.yolifay.libraryservice.domain.model.AuditEvent;
-import com.yolifay.libraryservice.infrastructure.web.AuditController;
 import com.yolifay.libraryservice.domain.port.AuditLogRepositoryPort;
 
 import org.junit.jupiter.api.Test;

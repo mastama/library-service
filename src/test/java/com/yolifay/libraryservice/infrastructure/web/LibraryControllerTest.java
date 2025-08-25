@@ -1,4 +1,4 @@
-package com.yolifay.libraryservice.infrastructure;
+package com.yolifay.libraryservice.infrastructure.web;
 
 import com.yolifay.libraryservice.application.dto.CreateLibraryRequest;
 import com.yolifay.libraryservice.application.dto.IdResponse;
@@ -8,7 +8,6 @@ import com.yolifay.libraryservice.domain.model.LibraryItem;
 
 import com.yolifay.libraryservice.domain.usecase.library.command.*;
 import com.yolifay.libraryservice.domain.usecase.library.handler.*;
-import com.yolifay.libraryservice.infrastructure.web.LibraryController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
